@@ -5,9 +5,32 @@ import { fragmentShader } from "./shaders/glow/fragment";
 import { atmosphereVertexShader } from "./shaders/atmoshpere/vertex";
 import { atmosphereFragmentShader } from "./shaders/atmoshpere/fragment";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { PlaneGeometry } from "three";
 
 // Canvas
 const canvas = document.querySelector("canvas.webgl");
+
+function getImageData(image) {
+  var canvas = document.createElement("canvas");
+  canvas.width = image.width;
+  canvas.height = image.height;
+
+  var context = canvas.getContext("2d");
+  context.drawImage(image, 0, 0);
+
+  return context.getImageData(0, 0, image.width, image.height);
+}
+
+function getPixel(imagedata, x, y) {
+  var position = (x + imagedata.width * y) * 4,
+    data = imagedata.data;
+  return {
+    r: data[position],
+    g: data[position + 1],
+    b: data[position + 2],
+    a: data[position + 3],
+  };
+}
 
 // Scene
 const scene = new THREE.Scene();
@@ -25,15 +48,23 @@ scene.add(sprite);
 
 const group = new THREE.Group();
 // ---------------------DOTS-----------------------
-const dotsGroup = new THREE.Group();
 
-const dotsMaterial = new THREE.MeshBasicMaterial({
+let data, dotsGroup, dotsMaterial;
+// new THREE.ImageLoader().load("earth2.png", (image) => {
+//   const w = image.width;
+//   const h = image.height;
+
+//   data = getImageData(image);
+
+dotsGroup = new THREE.Group();
+
+dotsMaterial = new THREE.MeshBasicMaterial({
   color: 0x2277ee,
   transparent: true,
   opacity: 0.2,
 });
 
-const DOT_COUNT = 2000;
+const DOT_COUNT = 4000;
 
 const vector = new THREE.Vector3();
 
@@ -41,21 +72,34 @@ for (let i = DOT_COUNT; i >= 0; i--) {
   const phi = Math.acos(-1 + (2 * i) / DOT_COUNT);
   const theta = Math.sqrt(DOT_COUNT * Math.PI) * phi;
 
-  vector.setFromSphericalCoords(0.5, phi, theta);
+  vector.setFromSphericalCoords(5, phi, theta);
 
   const x = new THREE.Mesh(
     new THREE.SphereBufferGeometry(0.004, 5, 5),
     dotsMaterial
   );
 
+  vector.normalize();
+  // let u = 0.5 + Math.atan2(vector.x, vector.z) / (2 * Math.PI);
+  // let v = vector.y * 0.5 + 0.5;
+
+  // const thisPixel = getPixel(data, Math.round(u * -w), Math.round(v * h));
   x.position.x = vector.x;
   x.position.y = vector.y;
   x.position.z = vector.z;
-
+  // if (
+  //   thisPixel?.r < 128 &&
+  //   thisPixel?.b < 128 &&
+  //   thisPixel?.g < 128 &&
+  //   thisPixel?.a > 128
+  // ) {
   dotsGroup.add(x);
+  // }
 }
+dotsGroup.scale.set(0.5, 0.5, 0.5);
 
 group.add(dotsGroup);
+// });
 
 // ---------------------------INNER_SPHERE-----------------------------
 
@@ -82,7 +126,9 @@ const atmosphereMesh = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
 atmosphereMesh.scale.set(2, 2, 2);
 atmosphereMesh.position.z = -1.3;
 
-group.add(atmosphereMesh);
+// group.add(atmosphereMesh);
+
+// ----------------------------------------------------------------
 
 group.position.x = 0.5;
 group.position.y = 0.3;
@@ -90,6 +136,7 @@ group.rotation.x = 0.15;
 group.rotation.y = -0.23;
 
 scene.add(group);
+
 // ---------------------------STARS------------------------------
 
 const starGeometry = new THREE.BufferGeometry();
@@ -116,7 +163,6 @@ starGeometry.setAttribute(
 
 const stars = new THREE.Points(starGeometry, starMaterial);
 
-console.log(stars);
 scene.add(stars);
 // ------------------------------------------------------------
 const pointLight = new THREE.PointLight(0x0000ff, 1000, 2, 2);
@@ -184,16 +230,20 @@ const scale = (number, inMin, inMax, outMin, outMax) => {
 const tick = () => {
   const elapsedTime = clock.getElapsedTime();
 
-  dotsGroup.rotation.y = 0.1 * elapsedTime;
-  dotsGroup.rotation.x = 0.1 * elapsedTime;
+  if (dotsGroup) {
+    dotsGroup.rotation.x = 0.05 * elapsedTime;
+    dotsGroup.rotation.y = 0.1 * elapsedTime;
+  }
 
-  dotsMaterial.opacity = scale(
-    Math.sin(new Date().getTime() * 0.0025),
-    -1,
-    1,
-    0.2,
-    0.5
-  );
+  if (dotsMaterial) {
+    dotsMaterial.opacity = scale(
+      Math.sin(new Date().getTime() * 0.0025),
+      -1,
+      1,
+      0.2,
+      0.5
+    );
+  }
 
   // Render
   renderer.render(scene, camera);
