@@ -5,32 +5,32 @@ import { fragmentShader } from "./shaders/glow/fragment";
 import { atmosphereVertexShader } from "./shaders/atmoshpere/vertex";
 import { atmosphereFragmentShader } from "./shaders/atmoshpere/fragment";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { PlaneGeometry } from "three";
+import { terrainVertexShader } from "./shaders/terrain/vertex";
+import { terrainFragmentShader } from "./shaders/terrain/fragment";
 
-// Canvas
 const canvas = document.querySelector("canvas.webgl");
 
-function getImageData(image) {
-  var canvas = document.createElement("canvas");
-  canvas.width = image.width;
-  canvas.height = image.height;
+// function getImageData(image) {
+//   var canvas = document.createElement("canvas");
+//   canvas.width = image.width;
+//   canvas.height = image.height;
 
-  var context = canvas.getContext("2d");
-  context.drawImage(image, 0, 0);
+//   var context = canvas.getContext("2d");
+//   context.drawImage(image, 0, 0);
 
-  return context.getImageData(0, 0, image.width, image.height);
-}
+//   return context.getImageData(0, 0, image.width, image.height);
+// }
 
-function getPixel(imagedata, x, y) {
-  var position = (x + imagedata.width * y) * 4,
-    data = imagedata.data;
-  return {
-    r: data[position],
-    g: data[position + 1],
-    b: data[position + 2],
-    a: data[position + 3],
-  };
-}
+// function getPixel(imagedata, x, y) {
+//   var position = (x + imagedata.width * y) * 4,
+//     data = imagedata.data;
+//   return {
+//     r: data[position],
+//     g: data[position + 1],
+//     b: data[position + 2],
+//     a: data[position + 3],
+//   };
+// }
 
 // Scene
 const scene = new THREE.Scene();
@@ -42,23 +42,21 @@ const imgMaterial = new THREE.SpriteMaterial({
   opacity: 0.7,
 });
 const sprite = new THREE.Sprite(imgMaterial);
-sprite.scale.set(6, 1.5, 1);
-sprite.position.y = -1.5;
+sprite.scale.set(5000, 1000.5, 1);
+sprite.position.y = -775.5;
+sprite.position.z = -1005;
 scene.add(sprite);
 
 const group = new THREE.Group();
 // ---------------------DOTS-----------------------
 
-let data, dotsGroup, dotsMaterial;
-// new THREE.ImageLoader().load("earth2.png", (image) => {
-//   const w = image.width;
 //   const h = image.height;
 
 //   data = getImageData(image);
 
-dotsGroup = new THREE.Group();
+const dotsGroup = new THREE.Group();
 
-dotsMaterial = new THREE.MeshBasicMaterial({
+const dotsMaterial = new THREE.MeshBasicMaterial({
   color: 0x2277ee,
   transparent: true,
   opacity: 0.2,
@@ -164,7 +162,35 @@ starGeometry.setAttribute(
 const stars = new THREE.Points(starGeometry, starMaterial);
 
 scene.add(stars);
-// ------------------------------------------------------------
+// ----------------------TERRAIN---------------------------------
+
+const terrain = (u, v, target) => {
+  target.set(50 * u, Math.random() * 0.1, 15 * v);
+};
+
+const terrainGeometry = new THREE.ParametricGeometry(terrain, 150, 40);
+// const terrainMaterial = new THREE.MeshBasicMaterial({
+//   color: 0x195acc,
+//   transparent: true,
+//   opacity: 0.2,
+//   wireframe: true,
+//   side: THREE.DoubleSide,
+// });
+const terrainMaterial = new THREE.ShaderMaterial({
+  transparent: true,
+  wireframe: true,
+  vertexShader: terrainVertexShader,
+  fragmentShader: terrainFragmentShader,
+});
+terrainGeometry.rotateX(-0.3);
+
+const terrainMesh = new THREE.Mesh(terrainGeometry, terrainMaterial);
+terrainMesh.translateX(-16);
+terrainMesh.translateZ(-2);
+terrainMesh.translateY(-2);
+scene.add(terrainMesh);
+
+// ---------------------------------------------------------------
 const pointLight = new THREE.PointLight(0x0000ff, 1000, 2, 2);
 pointLight.position.x = 1;
 pointLight.position.y = 1;
@@ -203,8 +229,8 @@ camera.position.z = 2;
 scene.add(camera);
 
 // Controls
-// const controls = new OrbitControls(camera, canvas);
-// controls.enableDamping = true;
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
 
 /**
  * Renderer
