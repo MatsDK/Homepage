@@ -7,6 +7,9 @@ import { atmosphereFragmentShader } from "./shaders/atmoshpere/fragment";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { terrainVertexShader } from "./shaders/terrain/vertex";
 import { terrainFragmentShader } from "./shaders/terrain/fragment";
+import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
+import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
+import { ObjectLoader } from "three";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -35,7 +38,7 @@ const canvas = document.querySelector("canvas.webgl");
 // Scene
 const scene = new THREE.Scene();
 
-const map = new THREE.TextureLoader().load("./blue-white-glow.png");
+const map = new THREE.TextureLoader().load("./images/blue-white-glow.png");
 const imgMaterial = new THREE.SpriteMaterial({
   map: map,
   color: 0xffffff,
@@ -70,7 +73,7 @@ for (let i = DOT_COUNT; i >= 0; i--) {
   const phi = Math.acos(-1 + (2 * i) / DOT_COUNT);
   const theta = Math.sqrt(DOT_COUNT * Math.PI) * phi;
 
-  vector.setFromSphericalCoords(5, phi, theta);
+  vector.setFromSphericalCoords(1, phi, theta);
 
   const x = new THREE.Mesh(
     new THREE.SphereBufferGeometry(0.004, 5, 5),
@@ -122,7 +125,7 @@ const atmosphereMaterial = new THREE.ShaderMaterial({
 const atmosphereMesh = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
 
 atmosphereMesh.scale.set(2, 2, 2);
-atmosphereMesh.position.z = -1.3;
+atmosphereMesh.position.z = -1.5;
 
 // group.add(atmosphereMesh);
 
@@ -165,17 +168,10 @@ scene.add(stars);
 // ----------------------TERRAIN---------------------------------
 
 const terrain = (u, v, target) => {
-  target.set(50 * u, Math.random() * 0.1, 15 * v);
+  target.set(25 * u, Math.random() * 0.15, 6 * v);
 };
 
-const terrainGeometry = new THREE.ParametricGeometry(terrain, 150, 40);
-// const terrainMaterial = new THREE.MeshBasicMaterial({
-//   color: 0x195acc,
-//   transparent: true,
-//   opacity: 0.2,
-//   wireframe: true,
-//   side: THREE.DoubleSide,
-// });
+const terrainGeometry = new THREE.ParametricGeometry(terrain, 100, 15);
 const terrainMaterial = new THREE.ShaderMaterial({
   transparent: true,
   wireframe: true,
@@ -185,12 +181,39 @@ const terrainMaterial = new THREE.ShaderMaterial({
 terrainGeometry.rotateX(-0.3);
 
 const terrainMesh = new THREE.Mesh(terrainGeometry, terrainMaterial);
-terrainMesh.translateX(-16);
+terrainMesh.translateX(-10);
 terrainMesh.translateZ(-2);
 terrainMesh.translateY(-2);
 scene.add(terrainMesh);
 
+// ------------------------------TEXT----------------------------
+
+const loader = new THREE.FontLoader();
+
+loader.load("fonts/RubikMonoOne.json", (font) => {
+  const TextGeometry = new THREE.TextGeometry("Hello World", {
+    font: font,
+    size: 0.1,
+    height: 0.01,
+    curveSegments: 10,
+    bevelEnabled: true,
+    bevelThickness: 0.001,
+    bevelSize: 0.001,
+
+    bevelOffset: 0.001,
+    bevelSegments: 1,
+  });
+
+  const textMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+  });
+
+  const textMesh = new THREE.Mesh(TextGeometry, textMaterial);
+  scene.add(textMesh);
+});
+
 // ---------------------------------------------------------------
+
 const pointLight = new THREE.PointLight(0x0000ff, 1000, 2, 2);
 pointLight.position.x = 1;
 pointLight.position.y = 1;

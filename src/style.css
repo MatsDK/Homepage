@@ -15,4 +15,13 @@ body {
   left: 0;
   outline: none;
   background-color: #ffffff;
+  /* z-index: 1; */
+}
+
+h1 {
+  position: absolute;
+  color: #fff;
+  font-size: 180px;
+  font-family: "Sigmar One", cursive;
+  z-index: 100;
 }
