@@ -7,6 +7,6 @@ void main() {
   vec3 atmosphere = vec3(0.1, 0.35, 0.8) * pow(intensity, 1.5);
   // vec3 atmosphere = vec3(1, 0.4, 0.8) * pow(intensity, 1.5);
 
-  gl_FragColor = vec4(atmosphere + vec3(0.06, 0.06, .06), .4);
+  gl_FragColor = vec4(atmosphere + vec3(0.06, 0.06, .06), .5);
 }
 `;

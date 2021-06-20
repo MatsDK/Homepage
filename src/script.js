@@ -9,7 +9,9 @@ import { terrainVertexShader } from "./shaders/terrain/vertex";
 import { terrainFragmentShader } from "./shaders/terrain/fragment";
 import { OBJLoader } from "three/examples/jsm/loaders/OBJLoader.js";
 import { MTLLoader } from "three/examples/jsm/loaders/MTLLoader.js";
-import { ObjectLoader } from "three";
+import { Mesh, ObjectLoader } from "three";
+import { textVertextShader } from "./shaders/text/vertext";
+import { textFragmentShader } from "./shaders/text/fragment";
 
 const canvas = document.querySelector("canvas.webgl");
 
@@ -126,15 +128,19 @@ const atmosphereMesh = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
 
 atmosphereMesh.scale.set(2, 2, 2);
 atmosphereMesh.position.z = -1.5;
+atmosphereMesh.position.x = -0.5;
 
 // group.add(atmosphereMesh);
 
 // ----------------------------------------------------------------
 
-group.position.x = 0.5;
+group.position.x = 1.5;
+// group.position.x = 0.5;
 group.position.y = 0.3;
 group.rotation.x = 0.15;
-group.rotation.y = -0.23;
+group.rotation.y = -1;
+// group.rotation.y = -0.23;
+group.scale.set(0.7, 0.8, 0.8);
 
 scene.add(group);
 
@@ -173,6 +179,9 @@ const terrain = (u, v, target) => {
 
 const terrainGeometry = new THREE.ParametricGeometry(terrain, 100, 15);
 const terrainMaterial = new THREE.ShaderMaterial({
+  uniforms: {
+    time: 0,
+  },
   transparent: true,
   wireframe: true,
   vertexShader: terrainVertexShader,
@@ -189,12 +198,13 @@ scene.add(terrainMesh);
 // ------------------------------TEXT----------------------------
 
 const loader = new THREE.FontLoader();
+let textMaterial;
 
 loader.load("fonts/RubikMonoOne.json", (font) => {
-  const TextGeometry = new THREE.TextGeometry("Hello World", {
+  const TextGeometry = new THREE.TextGeometry("Home", {
     font: font,
-    size: 0.1,
-    height: 0.01,
+    size: 0.9,
+    height: 0.05,
     curveSegments: 10,
     bevelEnabled: true,
     bevelThickness: 0.001,
@@ -204,11 +214,22 @@ loader.load("fonts/RubikMonoOne.json", (font) => {
     bevelSegments: 1,
   });
 
-  const textMaterial = new THREE.MeshBasicMaterial({
-    color: 0xffffff,
+  // const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  textMaterial = new THREE.ShaderMaterial({
+    vertexShader: textVertextShader,
+    fragmentShader: textFragmentShader,
+    transparent: true,
+    uniforms: {
+      TextTexture: {
+        value: new THREE.TextureLoader().load("images/blue-white-glow.png"),
+      },
+    },
   });
 
   const textMesh = new THREE.Mesh(TextGeometry, textMaterial);
+  textMesh.position.x = -2;
+  textMesh.scale.setX(0.3);
+  textMesh.scale.setY(0.3);
   scene.add(textMesh);
 });
 
@@ -252,8 +273,8 @@ camera.position.z = 2;
 scene.add(camera);
 
 // Controls
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
+// const controls = new OrbitControls(camera, canvas);
+// controls.enableDamping = true;
 
 /**
  * Renderer
@@ -264,7 +285,7 @@ const renderer = new THREE.WebGLRenderer({
 });
 renderer.setSize(sizes.width, sizes.height);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.setClearColor(0x111111, 1);
+renderer.setClearColor(0x010101, 1);
 
 /**
  * Animate
@@ -290,7 +311,7 @@ const tick = () => {
       -1,
       1,
       0.2,
-      0.5
+      0.7
     );
   }
 
